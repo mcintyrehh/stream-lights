@@ -16,7 +16,7 @@ TAUTULLI_API_KEY = os.getenv('TAUTULLI_API_KEY')
 TAUTULLI_IP = os.getenv('TAUTULLI_URL')
 
 # LED strip configuration:
-LED_COUNT      = 40      # Number of LED pixels.
+LED_COUNT      = 30      # Number of LED pixels.
 LED_PIN        = 18      # GPIO pin connected to the pixels (must support PWM!).
 LED_FREQ_HZ    = 800000  # LED signal frequency in hertz (usually 800khz)
 LED_DMA        = 10      # DMA channel to use for generating signal (try 10)
@@ -85,14 +85,20 @@ def streams_rainbow_cycle(strip, streams, wait_ms=20, iterations=10):
 def stream_count():
 	"""Returns an int of current streams or None"""
 	tautulli_url = f"{TAUTULLI_IP}/api/v2?apikey={TAUTULLI_API_KEY}&cmd=get_activity"
-	res = requests.get(tautulli_url).json()
-	stream_count =  res['response']['data'].get('stream_count')
-	if (stream_count is not None):
-		stream_count = int(stream_count)
-	return stream_count
+	try:
+		res = requests.get(tautulli_url).json()
+		stream_count =  res['response']['data'].get('stream_count')
+		if (stream_count is not None):
+			stream_count = int(stream_count)
+		return stream_count
+
+	except Exception as e:
+		print(e)
 
 # Main program logic follows:
 if __name__ == '__main__':
+    print('stream-lights.py init')
+
     # Process arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--clear', action='store_true', help='clear the display on exit')
@@ -109,13 +115,13 @@ if __name__ == '__main__':
 
     try:
         while True:
-            print('Get Stream Info.')
             streams = stream_count()
-            print("# of streams: ", streams)
+            #print("# of streams: ", streams)
             if(streams is not None):
             	 streams_rainbow(strip, streams)
 
     except KeyboardInterrupt:
         if args.clear:
             color_wipe(strip, Color(0,0,0), 10)
+
 
